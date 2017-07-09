@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script type="text/javascript" src="https://www.team-8.tk/js/bootstrap.min.js"></script>
+    <script src="https://api.dmcdn.net/all.js"></script>
+</head>
+<body>
+<div class="player_wrapper">
+    <div class="player" id="player"></div>
+    <div class="loader"><div class="spinner"></div></div>
+</div>
+</br>
+</hr>
+
+<div class="paginationDiv">
+    <ul class="pagination" id="pagiantionContainer">
+
+    </ul>
+</div>
+
+</body>
+
+<script type="text/javascript">
+
+</script>
+
+<script type="text/javascript">
+    //initiate next btn and function
+    //var btn = document.getElementById('next').addEventListener("click", nextFunction);
+
+    // Instantiating an "empty" player (equivalent of loading the /embed endpoint)
+    var player = DM.player('player', {
+        width: '640',
+        height: '360',
+        params: {
+            controls: false,
+            endscreen: false,
+            GK_PV5_GLOBAL_TIMEOUT_EXTENDED: true
+        }
+    });
+
+
+
+    player.addEventListener('apiready', onPlayerApiReady);
+
+    //it is to retrieve metadata then load and fill the paginations.
+    player.addEventListener('loadedmetadata', loadPagination);
+
+    //event..
+    player.addEventListener('start', startTimeInterval);
+
+
+
+
+    function getURLParameter(name) {
+        return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) || [null, ''])[1].replace(/\+/g, '%20')) || null;
+    }
+
+    function onPlayerApiReady() {
+        // Let's start by loading a first video into the player
+        loadVideo('x2gesvs');
+        // Setup "Load another video" link
+        /*document.querySelector('.load').addEventListener('click', function(e){
+         e.preventDefault();
+         loadVideo(ids[i]);
+         i+=1; if (i === ids.length) i = 0;
+         });*/
+    };
+
+    function loadVideo(videoId) {
+        setupLoader();
+        player.load(videoId);
+
+    }
+
+    function setupLoader() {
+        player.addEventListener('playing', onPlayerPlaying);
+        player.addEventListener('ad_start', onPlayerPlaying);
+        showLoader();
+    }
+
+    function onPlayerPlaying() {
+        console.log('ad or video started playing!');
+        window.started = true;
+        // We only need to pass here once per video, as soon as we get
+        // the first one of those two events (ad_start or playing)
+        // So now we can stop listening to those events...
+        player.removeEventListener('playing', onPlayerPlaying);
+        player.removeEventListener('ad_start', onPlayerPlaying);
+        // ...and fade out the loader
+        dismissLoader();
+    }
+
+    function showLoader() {
+        var loader = document.querySelector('.loader');
+        loader.style.opacity = 0.8;
+        loader.style.display = 'block';
+    }
+
+    function dismissLoader() {
+        // Fade out the loader (and completely hide it
+        // when the opacity transition is done)
+        var loader = document.querySelector('.loader');
+        loader.addEventListener('transitionend', function(e){
+            loader.style.display = 'none';
+        });
+        loader.style.opacity = 0;
+    }
+
+    //this is to check if video player is about the pass next episode.
+    function startTimeInterval() {
+        var id = setInterval(function(){
+            if(window.started) {
+                var currentTime = player.currentTime;
+                if (currentTime > window.episode * 1200) {
+                    var loc = window.path + "?episode=" + (parseInt(window.episode) + 1);
+                    window.location.assign(loc);
+                    console.log("redirected!" + " episode = "+window.episode+" currentTime="+currentTime);
+                   clearInterval(id);
+                }
+
+                if(currentTime<window.episode * 1200 - 1200){
+                    var loc = window.path+"?episode=" + (parseInt(window.episode) - 1);
+                    window.location.assign(loc);
+                    console.log("redirected!" + " episode = "+window.episode+" currentTime="+currentTime);
+                    clearInterval(id);
+                }
+            }
+        }, 50);
+    }
+
+
+
+    function loadPagination() {
+        var duration = player.duration;
+        window.episodes = parseInt(duration / 1200 + 1);
+        window.episode = getURLParameter("episode");
+
+        if(window.episode){
+            player.seek(1200*(window.episode-1));
+        }
+        else{
+            window.episode = 1;
+        }
+
+        var innerHtml = "";
+        var active = "";
+
+        for(var i = 1; i<=window.episodes; i++){
+            //this check is to visually select the episode when page is load.
+            if(window.episode == i || (!window.episode && i == 1))
+                active = "active";
+            else
+                active = "";
+
+            innerHtml+=
+                '<li class="page-item '+active+'" id="page-1">' +
+                '<a class="page-link waves-effect waves-effect" href="'+window.path+'?episode='+i+'">'+ i +
+                '<span class="sr-only">(current)</span></a>' +
+                '</li>';
+        }
+
+        $('#pagiantionContainer').html(innerHtml);
+    }
+</script>
+
+<script type="text/javascript">
+    //here, you should define the path.
+    $(function () {
+        if(!window.path)
+            window.path = "C:/Users/Can/Desktop/DailyMotion%20Project/deneme.html"
+    });
+
+</script>
+</html>
