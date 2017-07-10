@@ -116,19 +116,19 @@
         var id = setInterval(function(){
             if(window.started) {
                 var currentTime = player.currentTime;
-                if (currentTime > window.episode * 1200) {
+                if (currentTime > window.episode * 1200 + 2) {
                     var loc = window.path + "?episode=" + (parseInt(window.episode) + 1);
                     window.location.assign(loc);
                     console.log("redirected!" + " episode = "+window.episode+" currentTime="+currentTime);
                    clearInterval(id);
                 }
 
-                if(currentTime<window.episode * 1200 - 1200){
+                /*if(currentTime<window.episode * 1200 - 1200 - 2){
                     var loc = window.path+"?episode=" + (parseInt(window.episode) - 1);
                     window.location.assign(loc);
                     console.log("redirected!" + " episode = "+window.episode+" currentTime="+currentTime);
                     clearInterval(id);
-                }
+                }*/
             }
         }, 50);
     }
@@ -141,7 +141,7 @@
         window.episode = getURLParameter("episode");
 
         if(window.episode){
-            player.seek(1200*(window.episode-1));
+            player.seek(1200*(window.episode-1) + 1);
         }
         else{
             window.episode = 1;
